@@ -36,21 +36,4 @@ public class Home extends HttpServlet {
         req.getRequestDispatcher("/WEB-INF/jsp/home.jsp").forward(req, resp);
     }
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse resp) throws ServletException, IOException {
-        Part filePart = request.getPart("file");
-        String fileName = filePart.getSubmittedFileName();
-//        for (Part part : request.getParts()) {
-//            InputStream inputStream = part.getInputStream();
-//            byte[] bytes = inputStream.readAllBytes();
-//
-//            Post post = Post.builder()
-//                    .imageName(fileName)
-//                    .img(bytes)
-//                    .build();
-//
-//            EntityRepository repository = new PostsRepository();
-//            post = (Post) repository.save(post);
-//        }
-    }
 }

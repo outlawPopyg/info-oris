@@ -78,16 +78,56 @@ public class PostsRepository implements EntityRepository {
 
     @Override
     public Optional<Entity> findById(Long id) {
-        return Optional.empty();
+        try (Connection connection = PostgresConnectionProvider.getConnection()) {
+            PreparedStatement statement = connection.prepareStatement(generator.find(id, Post.class));
+            ResultSet resultSet = statement.executeQuery();
+
+            Entity post;
+            if (resultSet.next()) {
+                post = Post.builder()
+                        .id(resultSet.getLong("id"))
+                        .text(resultSet.getString("text"))
+                        .title(resultSet.getString("title"))
+                        .imageName(resultSet.getString("image_name"))
+                        .img(resultSet.getBytes("post_image"))
+                        .isChecked(resultSet.getBoolean("is_checked"))
+                        .userId(resultSet.getLong("user_id"))
+                        .build();
+
+                return Optional.of(post);
+            }
+
+            return Optional.empty();
+
+        } catch (SQLException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     @Override
     public void delete(Long id) {
-
+        try (Connection connection = PostgresConnectionProvider.getConnection()) {
+            PreparedStatement statement = connection.prepareStatement(generator.delete(id, Post.class));
+            statement.execute();
+        } catch (SQLException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     @Override
     public void update(Entity entity) {
+        try (Connection connection = PostgresConnectionProvider.getConnection()) {
+            PreparedStatement statement = connection.prepareStatement(generator.update(entity));
 
+            Post post = (Post) entity;
+            if (post.getImg() != null) {
+                statement.setBytes(1, post.getImg());
+            }
+
+            statement.execute();
+
+        } catch (SQLException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 }

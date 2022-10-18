@@ -16,19 +16,13 @@ import util.Util;
 import java.io.IOException;
 import java.io.InputStream;
 
-@WebServlet("/posts/add")
-@MultipartConfig()
-public class AddPost extends HttpServlet {
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.getRequestDispatcher("/WEB-INF/jsp/add-post.jsp").forward(req, resp);
-    }
-
+@WebServlet("/posts/update")
+@MultipartConfig
+public class UpdatePost extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        Util.handleAddAndUpdate(req, true);
 
-        Util.handleAddAndUpdate(req, false);
-
-        resp.sendRedirect("/home");
+        resp.sendRedirect("/posts");
     }
 }

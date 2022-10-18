@@ -28,7 +28,7 @@
 
 	<div class="home-content" style="margin-top: 40px;">
 		<h2 style="font-family: 'ChineseRocks', sans-serif; margin-top: 25px;">outlaw portal</h2>
-		<img width="800px" src="${pageContext.request.contextPath}/images/outlaw_black.jpg" alt="outlaw">
+		<img width="800px" src="<c:url value="/img/outlaw_black.jpg"/>" alt="outlaw">
 		<p style="font-size: 21px; width: 600px;text-align: center">
 			На этом сайте можно узнать много нового про дикий запад конца 19-го века и его обитателей.
 			Логотип, который вы видите на экране, нарисовал самолично автор сайта - Ахметшин К.Р.

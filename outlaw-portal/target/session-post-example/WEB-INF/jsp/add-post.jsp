@@ -8,22 +8,23 @@
 </head>
 <body>
 	<jsp:include page="/html/breadcrumb.jsp" />
-	<form action="" method="post" class="w-25 mx-auto" enctype="multipart/form-data">
+	<form action="${post != null ? "/posts/update" : ""}" method="post" class="w-25 mx-auto" enctype="multipart/form-data">
 		<h2 style="font-family: 'ChineseRocks', sans-serif">Add post</h2>
 		<div class="input-group mb-3">
 			<span class="input-group-text">Post title</span>
-			<input required name="title" type="text" class="form-control" aria-label="Server">
+			<input value="${post != null ? post.getTitle() : ""}" required name="title" type="text" class="form-control" aria-label="Server">
 		</div>
 
 		<div class="input-group mb-3">
 			<span class="input-group-text">Main text</span>
-			<textarea required name="text" class="form-control" aria-label="Main text"></textarea>
+			<textarea cols="10" rows="10" required name="text" class="form-control" aria-label="Main text">${post != null ? post.getText() : ""}</textarea>
 		</div>
 
 		<div class="input-group mb-3 mb-3">
 			<input name="image" type="file" class="form-control" id="inputGroupFile02">
-			<label class="input-group-text" for="inputGroupFile02">Upload .jpg image</label>
+			<label class="input-group-text" for="inputGroupFile02">Upload image</label>
 		</div>
+		<input hidden name="postId" value="${post != null ? post.getId() : ""}" type="text">
 		<button class="btn btn-outline-secondary">Add post</button>
 	</form>
 </body>

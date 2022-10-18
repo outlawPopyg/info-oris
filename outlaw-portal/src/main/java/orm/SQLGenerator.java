@@ -122,6 +122,10 @@ public class SQLGenerator<T> {
                     id = (Long) fieldValue;
                 }
 
+                if (fieldType.equals("byte[]") && fieldValue != null) {
+                    fieldValue = "?";
+                }
+
                 if (fieldValue != null && fieldType.equals("String")) {
                     fieldValue = "'" + fieldValue + "'";
                 }
