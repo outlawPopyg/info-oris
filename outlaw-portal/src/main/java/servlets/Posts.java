@@ -26,7 +26,17 @@ public class Posts extends HttpServlet {
         req.setAttribute("posts", posts);
         req.setAttribute("isChecked", true);
         req.setAttribute("authUser", authUser);
+        req.setAttribute("isAdmin", authUser != null && authUser.getRole().equals("admin"));
 
         req.getRequestDispatcher("/WEB-INF/jsp/check-posts.jsp").forward(req, resp);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        Long postId = Long.parseLong(req.getParameter("deleteId"));
+        EntityRepository repository = new PostsRepository();
+        repository.delete(postId);
+
+        resp.sendRedirect("/posts");
     }
 }

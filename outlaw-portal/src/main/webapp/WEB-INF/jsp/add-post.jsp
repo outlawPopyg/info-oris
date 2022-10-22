@@ -8,7 +8,7 @@
 </head>
 <body>
 	<jsp:include page="/html/breadcrumb.jsp" />
-	<form action="${post != null ? "/posts/update" : ""}" method="post" class="w-25 mx-auto" enctype="multipart/form-data">
+	<form action="${post != null ? "/posts/update" : ""}" method="post" class="w-50 mx-auto" enctype="multipart/form-data">
 		<h2 style="font-family: 'ChineseRocks', sans-serif">Add post</h2>
 		<div class="input-group mb-3">
 			<span class="input-group-text">Post title</span>

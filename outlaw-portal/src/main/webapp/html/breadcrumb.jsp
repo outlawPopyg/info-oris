@@ -16,6 +16,7 @@
 		<li class="breadcrumb-item"><a href="<c:url value="/home"/>">Home</a></li>
 		<li class="breadcrumb-item"><a href="<c:url value="/posts"/>">Posts</a></li>
 		<li class="breadcrumb-item"><a href="<c:url value="/posts/add"/>">Add</a></li>
+		<li class="breadcrumb-item"><a href="<c:url value="/shop"/>">Shop</a></li>
 		<% if (isAdmin) { %>
 			<li class="breadcrumb-item"><a href="<c:url value="/posts/add/check"/>">Check</a></li>
 		<% } %>

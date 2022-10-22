@@ -42,6 +42,12 @@
 							<button class="btn btn-outline-secondary mb-3 ml-3">Edit</button>
 						</form>
 					</c:if>
+					<c:if test="${isAdmin}">
+						<form action="" method="post">
+							<input name="deleteId" value="${post.getId()}" type="text" hidden>
+							<button class="btn btn-outline-danger mb-3 ml-3">Delete</button>
+						</form>
+					</c:if>
 				</div>
 			</c:if>
 
