@@ -7,6 +7,7 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpFilter;
+import models.Comment;
 import models.Post;
 import models.Product;
 import models.User;
@@ -28,7 +29,7 @@ public class HomeWebFilter extends HttpFilter {
 
             SQLGenerator<User> userSQLGenerator = new SQLGenerator<>();
             SQLGenerator<Post> postSQLGenerator = new SQLGenerator<>();
-            SQLGenerator<Product> productSQLGenerator = new SQLGenerator<>();
+            SQLGenerator<Comment> commentSQLGenerator = new SQLGenerator<>();
 
             PreparedStatement statement = connection.prepareStatement(userSQLGenerator.createTable(User.class));
             statement.execute();
@@ -36,7 +37,7 @@ public class HomeWebFilter extends HttpFilter {
             statement = connection.prepareStatement(postSQLGenerator.createTable(Post.class));
             statement.execute();
 
-            statement = connection.prepareStatement(productSQLGenerator.createTable(Product.class));
+            statement = connection.prepareStatement(commentSQLGenerator.createTable(Comment.class));
             statement.execute();
 
         } catch (SQLException e) {

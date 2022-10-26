@@ -5,8 +5,10 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import models.Comment;
 import models.Post;
 import models.User;
+import repositories.CommentRepository;
 import repositories.EntityRepository;
 import repositories.PostsRepository;
 
@@ -34,8 +36,17 @@ public class Posts extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         Long postId = Long.parseLong(req.getParameter("deleteId"));
-        EntityRepository repository = new PostsRepository();
-        repository.delete(postId);
+        EntityRepository postsRepository = new PostsRepository();
+        EntityRepository commentRepository = new CommentRepository();
+        List<Comment> comments = (List<Comment>) commentRepository.findAll();
+
+        comments.forEach(comment -> {
+            if (comment.getPostId().equals(postId)) {
+                commentRepository.delete(comment.getId());
+            }
+        });
+
+        postsRepository.delete(postId);
 
         resp.sendRedirect("/posts");
     }
