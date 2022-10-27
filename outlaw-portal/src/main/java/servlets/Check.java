@@ -9,6 +9,7 @@ import models.Entity;
 import models.Post;
 import repositories.EntityRepository;
 import repositories.PostsRepository;
+import services.PostsService;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -20,8 +21,8 @@ import java.util.stream.Collectors;
 public class Check extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        PostsRepository repository = new PostsRepository();
-        List<Post> uncheckedPosts = (List<Post>) repository.findAll();
+        PostsService postsService = new PostsService();
+        List<Post> uncheckedPosts = postsService.getAllPosts();
         uncheckedPosts = uncheckedPosts.stream().filter(post -> !post.isChecked()).collect(Collectors.toList());
 
         req.setAttribute("isChecked", false);
@@ -34,19 +35,17 @@ public class Check extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String result = req.getParameter("res");
         Long postId = Long.parseLong(req.getParameter("postId"));
-        EntityRepository repository = new PostsRepository();
-        Optional<Entity> optional = repository.findById(postId);
+        PostsService postsService = new PostsService();
 
-        Post post = null;
-        if (optional.isPresent()) {
-            post = (Post) optional.get();
-            if (result.equals("accepted")) {
-                post.setChecked(true);
-                repository.update(post);
-            } else {
-                repository.delete(postId);
-            }
+        Post post = postsService.getPost(postId);
+
+        if (result.equals("accepted")) {
+            post.setChecked(true);
+            postsService.updatePost(post);
+        } else {
+            postsService.deletePost(postId);
         }
+
 
         resp.sendRedirect("/posts/add/check");
     }

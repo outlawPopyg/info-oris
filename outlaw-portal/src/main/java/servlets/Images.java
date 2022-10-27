@@ -9,6 +9,7 @@ import models.Entity;
 import models.Post;
 import repositories.EntityRepository;
 import repositories.PostsRepository;
+import services.PostsService;
 
 import java.io.IOException;
 import java.util.List;
@@ -19,8 +20,8 @@ public class Images extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String fileName = req.getRequestURI().substring(req.getRequestURI().lastIndexOf('/')+1);
 
-        EntityRepository repository = new PostsRepository();
-        List<Post> posts = (List<Post>) repository.findAll();
+        PostsService postsService = new PostsService();
+        List<Post> posts = postsService.getAllPosts();
 
         for (Post post : posts) {
             if (post.getImageName() != null && post.getImageName().equals(fileName)) {

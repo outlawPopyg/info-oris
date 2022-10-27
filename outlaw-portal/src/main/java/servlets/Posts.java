@@ -11,6 +11,8 @@ import models.User;
 import repositories.CommentRepository;
 import repositories.EntityRepository;
 import repositories.PostsRepository;
+import services.CommentService;
+import services.PostsService;
 
 import java.io.IOException;
 import java.util.List;
@@ -20,8 +22,9 @@ import java.util.stream.Collectors;
 public class Posts extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        EntityRepository repository = new PostsRepository();
-        List<Post> posts = (List<Post>) repository.findAll();
+        PostsService postsService = new PostsService();
+        List<Post> posts = postsService.getAllPosts();
+
         User authUser = (User) req.getSession().getAttribute("authUser");
         posts = posts.stream().filter(Post::isChecked).collect(Collectors.toList());
 
@@ -36,17 +39,19 @@ public class Posts extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         Long postId = Long.parseLong(req.getParameter("deleteId"));
-        EntityRepository postsRepository = new PostsRepository();
-        EntityRepository commentRepository = new CommentRepository();
-        List<Comment> comments = (List<Comment>) commentRepository.findAll();
+
+        PostsService postsService = new PostsService();
+        CommentService commentService = new CommentService();
+
+        List<Comment> comments = commentService.getAllComments();
 
         comments.forEach(comment -> {
             if (comment.getPostId().equals(postId)) {
-                commentRepository.delete(comment.getId());
+                commentService.deleteComment(comment.getId());
             }
         });
 
-        postsRepository.delete(postId);
+        postsService.deletePost(postId);
 
         resp.sendRedirect("/posts");
     }

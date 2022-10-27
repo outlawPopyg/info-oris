@@ -10,6 +10,7 @@ import models.User;
 import repositories.EntityRepository;
 import repositories.UserRepository;
 import security.Hash;
+import services.UserService;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -24,24 +25,8 @@ public class Registration extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String login = req.getParameter("login");
-        String password = req.getParameter("password");
-        password = Hash.hashPassword(password).toLowerCase();
-
-        EntityRepository repository = new UserRepository();
-
-        List<User> users = (List<User>) repository.findAll();
-        boolean alreadyRegistered = users.stream()
-                .anyMatch(user -> user.getLogin().equals(login));
-
-        if (alreadyRegistered) {
-            req.setAttribute("errorMessage", "Пользователь с именем " + login + " уже существует");
-            req.getRequestDispatcher("/WEB-INF/jsp/error.jsp").forward(req, resp);
-            return;
-        }
-
-        User user = User.builder().login(login).password(password).build();
-        repository.save(user);
+        UserService userService = new UserService();
+        userService.signUp(req, resp);
 
         resp.sendRedirect("/reg");
     }

@@ -8,21 +8,18 @@ import models.User;
 import repositories.EntityRepository;
 import repositories.PostsRepository;
 import repositories.UserRepository;
+import services.PostsService;
+import services.UserService;
 
 import java.io.InputStream;
 import java.util.Optional;
 
 public class Util {
     public static String getAuthorName(Long id) {
-        EntityRepository repository = new UserRepository();
-        Optional<Entity> entity = repository.findById(id);
+        UserService userService = new UserService();
+        User user = userService.getUser(id);
 
-        if (entity.isPresent()) {
-            User user = (User) entity.get();
-            return user.getLogin();
-        } else {
-            throw new IllegalArgumentException("There's no such user");
-        }
+        return user.getLogin();
     }
 
     public static void handleAddAndUpdate(HttpServletRequest req, boolean isUpdate) {
@@ -50,16 +47,16 @@ public class Util {
                         .img(bytes);
             }
 
-            EntityRepository repository = new PostsRepository();
+            PostsService postsService = new PostsService();
 
             Post post;
             if (isUpdate) {
                 Long postId = Long.parseLong(req.getParameter("postId"));
                 post = builder.id(postId).isChecked(true).build();
-                repository.update(post);
+                postsService.updatePost(post);
             } else {
                 post = builder.build();
-                repository.save(post);
+                postsService.savePost(post);
             }
 
         } catch (Exception e) {
