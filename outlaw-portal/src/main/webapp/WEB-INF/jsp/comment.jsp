@@ -20,7 +20,7 @@
 		<div class="w-50 mx-auto" style="margin-top: 5rem;">
 			<form action="" method="post">
 				<div class="input-group mb-3 mb-3">
-					<input name="comment" type="text" class="form-control" id="inputGroupFile02">
+					<input autocomplete="off" name="comment" type="text" class="form-control" id="inputGroupFile02">
 					<label class="input-group-text" for="inputGroupFile02">Your comment</label>
 				</div>
 				<button class="btn btn-success">Send</button>
