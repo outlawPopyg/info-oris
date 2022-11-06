@@ -6,11 +6,22 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException, InterruptedException {
-        AwesomePacket packet = AwesomePacket.create(1);
-        packet.setValue(1, 123);
-        packet.setValue(2, true);
-        packet.setValue(3, "I'm client");
 
-        AwesomeClient.sendMessage(4444, "127.0.0.1", packet);
+        AwesomeClient client = AwesomeClient.initConnection("localhost", 4444);
+
+        AwesomePacket packet1 = AwesomePacket.create(1);
+        packet1.setValue(1, "Message 1");
+        client.sendMessage(packet1);
+
+        AwesomePacket packet2 = AwesomePacket.create(1);
+        packet2.setValue(1, "Message 2");
+        client.sendMessage(packet2);
+
+        AwesomePacket packet3 = AwesomePacket.create(1);
+        packet3.setValue(1, "Message 3");
+        client.sendMessage(packet3);
+
+        AwesomePacket endPacket = AwesomePacket.create(2);
+        client.sendMessage(endPacket);
     }
 }

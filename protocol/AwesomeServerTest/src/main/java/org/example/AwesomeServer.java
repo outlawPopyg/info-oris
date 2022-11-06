@@ -5,21 +5,26 @@ import org.example.base.AwesomePacket;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ThreadPoolExecutor;
 
-public class AwesomeServer {
+public class AwesomeServer implements Runnable {
 
     private ServerSocket serverSocket;
     private Socket clientSocket;
     private Integer port;
+    private InputStream reader;
+    private OutputStream writer;
+    private ThreadPoolExecutor serverPool;
 
     private AwesomeServer() {
 
     }
 
-    public static AwesomeServer create(Integer port) throws IOException {
+    public static AwesomeServer create(Integer port, ThreadPoolExecutor serverPool) throws IOException {
         AwesomeServer server = new AwesomeServer();
         server.port = port;
         server.serverSocket = new ServerSocket(port);
+        server.serverPool = serverPool;
         return server;
     }
 
@@ -50,27 +55,39 @@ public class AwesomeServer {
         return data;
     }
 
-    public void start() throws IOException {
-        clientSocket = serverSocket.accept();
+    public void run() {
+        try {
+            clientSocket = serverSocket.accept();
+            reader = clientSocket.getInputStream();
+            writer = clientSocket.getOutputStream();
 
-        InputStream reader = clientSocket.getInputStream();
-        OutputStream writer = clientSocket.getOutputStream();
+            while (true) {
 
-        byte[] data = readInput(reader);
-        AwesomePacket packet = AwesomePacket.parse(data);
+                byte[] data = readInput(reader);
+                AwesomePacket packet = AwesomePacket.parse(data);
 
-        Integer value1 = packet.getValue(1, Integer.class);
-        Boolean value2 = packet.getValue(2, Boolean.class);
-        String value3 = packet.getValue(3, String.class);
+                if (packet.getType() == 2) {
+                    AwesomePacket response = AwesomePacket.create(2);
+                    response.setValue(1, "That's all folks");
+                    writer.write(response.toByteArray());
+                    serverPool.notifyAll();
 
-        System.out.println("Field ID : " + 1 + "; Value : " + value1);
-        System.out.println("Field ID : " + 2 + "; Value : " + value2);
-        System.out.println("Field ID : " + 3 + "; Value : " + value3);
+                    break;
+                }
 
-        AwesomePacket response = AwesomePacket.create(1);
-        response.setValue(1, "Thanks for message");
+                String value = packet.getValue(1, String.class);
 
-        writer.write(response.toByteArray());
-        writer.flush();
+                System.out.println("Message: " + value);
+
+                AwesomePacket response = AwesomePacket.create(1);
+                response.setValue(1, "Thanks for message");
+
+                writer.write(response.toByteArray());
+                writer.flush();
+            }
+        } catch (IOException e) {
+            System.out.println("Something went wrong");
+        }
+
     }
 }
