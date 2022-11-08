@@ -5,6 +5,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class MultithreadingExamples {
+
+    public static void main(String[] args) {
+        String[] arr = new String[] {"Hello", "World"};
+        System.out.println(arr.getClass().getSimpleName());
+    }
+
     public static void entryPoint() throws InterruptedException {
         System.out.println("debug");
 

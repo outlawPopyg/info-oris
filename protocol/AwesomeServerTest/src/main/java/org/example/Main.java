@@ -11,11 +11,14 @@ public class Main {
         AwesomeServer server = AwesomeServer.create(4444, serverPool);
 
         while (true) {
-            serverPool.execute(server);
+            synchronized (serverPool) {
+                serverPool.execute(server);
 
-            if (serverPool.getActiveCount() >= 10) {
-                serverPool.wait();
+                if (serverPool.getActiveCount() >= 10) {
+                    serverPool.wait();
+                }
             }
+
         }
     }
 }
