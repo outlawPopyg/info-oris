@@ -1,14 +1,0 @@
-
-e
-java:S1192@"JDefine a constant instead of duplicating this literal "; Value: " 3 times.(•Ö•úÿÿÿÿÿ
-e
-java:S1192@"JDefine a constant instead of duplicating this literal "FieldId: " 3 times.(•Ö•úÿÿÿÿÿ
-p
-java:S1450"[Remove the "clientSocket" field and declare it as a local variable in the relevant methods.(ó’ª~
-N	java:S106:"9Replace this use of System.out or System.err by a logger.(÷–¥
-S	java:S106@"9Replace this use of System.out or System.err by a logger.(•Ö•úÿÿÿÿÿ
-S	java:S106A"9Replace this use of System.out or System.err by a logger.(¾Ñ²±ıÿÿÿÿ
-N	java:S106B"9Replace this use of System.out or System.err by a logger.(ªÉ˜º
-Q	java:S125H"<This block of commented-out lines of code should be removed.(ÿëçÉ
-C
-java:S1068"(Remove this unused "port" private field.(„ƒ¤Êıÿÿÿÿ

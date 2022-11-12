@@ -66,7 +66,6 @@ public class AwesomeClient {
         AwesomeClient client = AwesomeClient.initConnection("localhost", 4444);
         client.start();
     }
-
     public synchronized void start() throws IOException {
 
         int iTmp = 0;
