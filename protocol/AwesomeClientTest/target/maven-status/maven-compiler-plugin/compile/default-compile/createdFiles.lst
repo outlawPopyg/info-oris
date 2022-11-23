@@ -1,4 +1,5 @@
-org\example\AwesomeServer.class
 org\example\Main.class
+org\example\MultithreadingExamples.class
+org\example\AwesomeClient.class
 org\example\AwesomePacket$AwesomeField.class
 org\example\AwesomePacket.class

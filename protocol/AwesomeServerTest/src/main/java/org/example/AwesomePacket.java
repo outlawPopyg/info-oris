@@ -1,4 +1,4 @@
-package org.example.base;
+package org.example;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -87,18 +87,17 @@ public class AwesomePacket {
         try (ByteArrayInputStream bis = new ByteArrayInputStream(field.getContent());
              ObjectInputStream ois = new ObjectInputStream(bis)) {
             return (T) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
     }
 
     public void setValue(int id, Object value) {
         AwesomeField field;
-        boolean isAlreadyExists = false;
-
         try {
             field = getField(id);
-            isAlreadyExists = true;
         } catch (IllegalArgumentException e) {
             field = new AwesomeField((byte) id);
         }
@@ -114,10 +113,7 @@ public class AwesomePacket {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        if (!isAlreadyExists) {
-            getFields().add(field);
-        }
+        getFields().add(field);
     }
 
     public static AwesomePacket create(int type) {

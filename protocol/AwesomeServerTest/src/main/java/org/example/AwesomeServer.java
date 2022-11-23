@@ -1,6 +1,6 @@
 package org.example;
 
-import org.example.base.AwesomePacket;
+import org.example.AwesomePacket;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -19,7 +19,7 @@ public class AwesomeServer implements Runnable {
     private ThreadPoolExecutor serverPool;
     private final byte bPoleSize = 3;
     private String[] pole = new String[bPoleSize * bPoleSize];
-    private byte bPlayerNum = 0;
+    private byte bPlayerNum = 1;
 
     private AwesomeServer() {
     }
@@ -66,16 +66,6 @@ public class AwesomeServer implements Runnable {
             writer = clientSocket.getOutputStream();
 
             while (true) {
-
-                byte[] data = readInput(reader);
-                AwesomePacket packet = AwesomePacket.parse(data);
-
-                if (packet.getType() == 1) {
-                    String[] pole = packet.getValue(1, String[].class);
-                    this.pole = pole;
-                    this.bPlayerNum = 1;
-                }
-
                 start();
             }
         } catch (IOException e) {
@@ -88,44 +78,40 @@ public class AwesomeServer implements Runnable {
         int iTmp = 0;
         Scanner sc = new Scanner(System.in);
 
+        // Инициализация поля
+        for (int i = 0; i < bPoleSize * bPoleSize; i++)
+            pole[i] = Integer.toString(++iTmp);
+
         // Играем, пока не наступит конец игры
         while (!isGameEnd()) {
             nextPlayer();
             while (true) {
-                System.out.println("\nХод игрока " + bPlayerNum);
+                System.out.println("\n " + bPlayerNum + " player's turn");
                 showPole(); // Рисуем поле
-                System.out.print("Наберите число, куда вы хотите вставить " + (1 == bPlayerNum ? "крестик" : "нолик") + ": ");
+                System.out.print("Type a digit where you want to put " + (1 == bPlayerNum ? "cross" : "zero") + ": ");
                 if (sc.hasNextInt()) { // проверяем, есть ли в потоке целое число
                     iTmp = sc.nextInt() - 1; // считывает целое число с потока ввода и сохраняем в переменную
                     if (isValidInput(iTmp))
                         break;
                 }
-                System.out.println("Вы ввели неправильное число. Повторите ввод");
+                System.out.println("You have entered invalid digit, please try again");
                 sc.next();
             }
             try {
-
                 putX(iTmp); // Вставляем на поле крестик или нолик
 
-                AwesomePacket packet = AwesomePacket.create(3);
-                packet.setValue(1, pole);
-                writer.write(packet.toByteArray());
-                writer.flush();
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(writer);
+                objectOutputStream.writeObject(pole);
+                objectOutputStream.flush();
 
-                byte[] data = readInput(reader);
-                AwesomePacket response = AwesomePacket.parse(data);
+                ObjectInputStream objectInputStream = new ObjectInputStream(reader);
 
-                if (response.getType() == 2) {
-                    synchronized (serverPool) {
-                        serverPool.notifyAll();
-                    }
-                } else if (response.getType() == 1) {
-                    pole = response.getValue(1, String[].class);
-                    bPlayerNum = 1;
-                }
+                pole = (String[]) objectInputStream.readObject();
+
+                bPlayerNum = 1;
 
             } catch (Exception e) {
-                System.out.println("Что-то пошло не так ;(");
+                System.out.println("Something went wrong ;(");
             }
         }
         showPole();
@@ -160,11 +146,8 @@ public class AwesomeServer implements Runnable {
                 bColWin &= (getXY(j, i).charAt(0) == getXY(j + 1, i).charAt(0));
             }
             if (bColWin || bRowWin) {
-                System.out.println("Победил игрок " + bPlayerNum);
-                AwesomePacket packet = AwesomePacket.create(2);
-                writer.write(packet.toByteArray());
-                writer.flush();
-
+                System.out.println("Zero wins");
+                System.exit(0);
                 return true;
             }
         }
@@ -177,11 +160,8 @@ public class AwesomeServer implements Runnable {
             bColWin &= (getXY(i, bPoleSize - i - 1).charAt(0) == getXY(i + 1, bPoleSize - i - 2).charAt(0));
         }
         if (bColWin || bRowWin) {
-            System.out.println("Победил игрок " + bPlayerNum);
-            AwesomePacket packet = AwesomePacket.create(2);
-            writer.write(packet.toByteArray());
-            writer.flush();
-
+            System.out.println("Zero wins");
+            System.exit(0);
             return true;
         }
 
@@ -196,12 +176,8 @@ public class AwesomeServer implements Runnable {
             }
         }
         if (bPoleSize * bPoleSize <= i) {
-            System.out.println("Ничья. Кончились ходы.");
-
-            AwesomePacket packet = AwesomePacket.create(2);
-
-            writer.write(packet.toByteArray());
-            writer.flush();
+            System.out.println("Draw");
+            System.exit(0);
 
             return true;
         }
