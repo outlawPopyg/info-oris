@@ -31,7 +31,12 @@ public class SuperPacket {
     private static final byte SEPARATOR_1 = (byte)  0x45; // 69
     private static final byte SEPARATOR_2 = (byte) 0x60; // 96
 
+    private static final byte SEPARATOR_3 = (byte) 0x2c; // 44
+    private static final byte SEPARATOR_4 = (byte) 0x2c; // 44
+
     private byte type;
+
+    private byte[] key;
 
     private List<SuperField> superFields = new LinkedList<>();
 
@@ -40,6 +45,13 @@ public class SuperPacket {
     public static SuperPacket create(int type) {
         SuperPacket packet = new SuperPacket();
         packet.type = (byte) type;
+        return packet;
+    }
+
+    public static SuperPacket create(String key) {
+        SuperPacket packet = new SuperPacket();
+        packet.type = (byte) 3;
+        packet.key = key.getBytes();
         return packet;
     }
 
@@ -64,6 +76,14 @@ public class SuperPacket {
                     writer.write(field.getAClassSize());
                     writer.write(field.getAClass());
                 }
+            }
+
+            if (type == 3) {
+                writer.write(SEPARATOR_3);
+                writer.write(SEPARATOR_4);
+
+                writer.write((byte) key.length);
+                writer.write(key);
             }
 
             writer.write(new byte[] {FOOTER_1, FOOTER_2, FOOTER_3});
@@ -115,6 +135,16 @@ public class SuperPacket {
                 field.setaClass(aClass);
 
                 offset += 3 + aClassSize;
+            }
+
+            if (type == 3 && data[offset] == SEPARATOR_3 && data[offset + 1] == SEPARATOR_4) {
+                byte keyLength = data[offset + 2];
+                byte[] key = new byte[Byte.toUnsignedInt(keyLength)];
+                System.arraycopy(data, offset + 3, key, 0, keyLength);
+
+                packet.key = key;
+
+                offset += 3 + keyLength;
             }
         }
     }
@@ -193,7 +223,7 @@ public class SuperPacket {
     }
 
     public void setValue(int id, Object value, Class aClass) {
-        if (type != 2) {
+        if (type != 2 && type != 3) {
             throw new IllegalArgumentException("use setValue(int, Object) for meta types");
         }
 
