@@ -27,30 +27,27 @@ class User {
 }
 
 public class Main {
-    public static void main(String[] args)
-            throws IOException, NoSuchPaddingException, NoSuchAlgorithmException,
-            IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
+    public static void main(String[] args) throws IOException {
 
         ObjectMapper mapper = new ObjectMapper();
         User user = new User(1L, "John", "Doe");
 
-        SuperPacket packet = SuperPacket.create(2);
+        SuperPacket packet = SuperPacket.create(2); // пакет standard
         packet.setValue(1, mapper.writeValueAsString(user), User.class);
 
+        SuperPacket packet1 = SuperPacket.parse(packet.toByteArray());
+        String json = packet1.getValue(1, String.class);
+        User user1 = mapper.readValue(json, User.class);
+        System.out.println(user1);
 
-        Cipher cipher = Cipher.getInstance("AES");
-        SecretKeySpec key = new SecretKeySpec("bar12345bar12345".getBytes(), "AES");
-        cipher.init(Cipher.ENCRYPT_MODE, key);
 
-        byte[] bytes = cipher.doFinal(packet.toByteArray());
+        SuperPacket encryptedPacket = SuperPacket.create("bar12345bar12345"); // подпакет 2 пакета шифрованный, принимает 16-ти значный ключ шифрования
+        encryptedPacket.setValue(1, mapper.writeValueAsString(user), User.class);
 
-        Cipher dec = Cipher.getInstance("AES");
-        dec.init(Cipher.DECRYPT_MODE, key);
-        byte[] decb = dec.doFinal(bytes);
+        SuperPacket decryptedPacket = SuperPacket.parse(encryptedPacket.toByteArray());
+        System.out.println(decryptedPacket.getValue(1, String.class));
 
-        SuperPacket decrypted = SuperPacket.parse(decb);
-        System.out.println(decrypted.getClass(1));
-
+        // пакеты типа 1 и 4 handshake и goodbye соответсвенно
 
     }
 }

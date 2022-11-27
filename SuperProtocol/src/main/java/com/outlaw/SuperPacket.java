@@ -10,9 +10,10 @@ package com.outlaw;
 //     ТИП стандартный пакет содержит данные в формате json
 //     ТИП стандартный ПОДТИП защищенный - содержит данные зашифрованые по ключу вашим любимым протоколом шифрования (сервер и клиент должны задавать ключ при старте общения отдельным пакетом)
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
@@ -163,7 +164,26 @@ public class SuperPacket {
 
     public <T> T getValue(int id, Class<T> tClass) {
         SuperField field = getField(id);
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(field.getContent());
+        byte[] content = field.getContent();
+
+        if (type == 3) {
+            try {
+                Cipher cipher = Cipher.getInstance("AES");
+
+                String secretKey = new String(key);
+
+                SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(), "AES");
+                cipher.init(Cipher.DECRYPT_MODE, key);
+
+                content = cipher.doFinal(content);
+
+
+            } catch (Exception e) {
+                throw new IllegalArgumentException(e);
+            }
+        }
+
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(content);
              ObjectInputStream ois = new ObjectInputStream(bis)) {
             return (T) ois.readObject();
 
@@ -205,6 +225,23 @@ public class SuperPacket {
 
             oos.writeObject(value);
             byte[] content = bos.toByteArray();
+
+            if (type == 3) {
+                try {
+                    Cipher cipher = Cipher.getInstance("AES");
+
+                    String secretKey = new String(key);
+
+                    SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(), "AES");
+                    cipher.init(Cipher.ENCRYPT_MODE, key);
+
+                    content = cipher.doFinal(content);
+
+
+                } catch (Exception e) {
+                    throw new IllegalArgumentException(e);
+                }
+            }
 
             if (content.length > 255) {
                 throw new IllegalArgumentException("Too big data");
