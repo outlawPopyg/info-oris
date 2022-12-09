@@ -119,6 +119,7 @@ public class SpaceInvadersApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         Scene scene = new Scene(createContent());
+        scene.setFill(new ImagePattern(new Image("space.jpg")));
 
         scene.setOnKeyPressed(e -> {
             switch (e.getCode()) {
