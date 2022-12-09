@@ -4,8 +4,11 @@ import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
@@ -23,6 +26,9 @@ public class SpaceInvadersApp extends Application {
 
     private Parent createContent() {
         root.setPrefSize(600, 800);
+
+        Image image = new Image("gamer.png");
+        player.setFill(new ImagePattern(image));
 
         root.getChildren().add(player);
 
@@ -43,6 +49,8 @@ public class SpaceInvadersApp extends Application {
     private void nextLevel() {
         for (int i = 0; i < 5; i++) {
             Sprite s = new Sprite(90 + i*100, 150, 30, 30, "enemy", Color.RED);
+            Image image = new Image("enemy.png");
+            s.setFill(new ImagePattern(image));
 
             root.getChildren().add(s);
         }
@@ -102,7 +110,8 @@ public class SpaceInvadersApp extends Application {
     }
 
     private void shoot(Sprite who) {
-        Sprite s = new Sprite((int) who.getTranslateX() + 20, (int) who.getTranslateY(), 5, 20, who.type + "bullet", Color.BLACK);
+        Sprite s = new Sprite((int) who.getTranslateX() + 20, (int) who.getTranslateY(), 12, 20, who.type + "bullet", Color.BLACK);
+        s.setFill(new ImagePattern(new Image("fireball.png")));
 
         root.getChildren().add(s);
     }
