@@ -12,17 +12,20 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 
 public class SpaceInvadersApp extends Application {
 
-    private Pane root = new Pane();
+    private final Pane root = new Pane();
 
     private double t = 0;
 
-    private Sprite player = new Sprite(300, 750, 40, 40, "player", Color.BLUE);
+    private int enemiesCount;
+
+    private final Sprite player = new Sprite(300, 750, 40, 40, "player", Color.BLUE);
 
     private Parent createContent() {
         root.setPrefSize(600, 800);
@@ -52,6 +55,8 @@ public class SpaceInvadersApp extends Application {
             Image image = new Image("enemy.png");
             s.setFill(new ImagePattern(image));
 
+            enemiesCount ++;
+
             root.getChildren().add(s);
         }
     }
@@ -61,6 +66,11 @@ public class SpaceInvadersApp extends Application {
     }
 
     private void update() {
+
+        if (enemiesCount == 0) {
+            nextLevel();
+        }
+
         t += 0.016;
 
         sprites().forEach(s -> {
@@ -82,6 +92,8 @@ public class SpaceInvadersApp extends Application {
                         if (s.getBoundsInParent().intersects(enemy.getBoundsInParent())) {
                             enemy.dead = true;
                             s.dead = true;
+
+                            enemiesCount--;
                         }
                     });
 
