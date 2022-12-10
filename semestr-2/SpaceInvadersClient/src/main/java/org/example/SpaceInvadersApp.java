@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 
@@ -138,6 +139,8 @@ public class SpaceInvadersApp extends Application {
     public void start(Stage stage) throws Exception {
 
         AwesomeClient client = AwesomeClient.initConnection("localhost", 4444);
+        System.out.println("client: " + client.getSocket().toString());
+
         this.inputStream = client.getReader();
         this.outputStream = client.getWriter();
 
@@ -151,12 +154,36 @@ public class SpaceInvadersApp extends Application {
             switch (e.getCode()) {
                 case A:
                     player.moveLeft();
+                    SuperPacket spriteMoveLeftPacket = SuperPacket.create(1);
+                    spriteMoveLeftPacket.setValue(1, "move left socket: " + client.getSocket().getPort());
+                    try {
+                        outputStream.write(spriteMoveLeftPacket.toByteArray());
+                        outputStream.flush();
+                    } catch (IOException exception) {
+                        throw new IllegalArgumentException(exception);
+                    }
                     break;
                 case D:
                     player.moveRight();
+                    SuperPacket spriteMoveRightPacket = SuperPacket.create(1);
+                    spriteMoveRightPacket.setValue(1, "move right socket: " + client.getSocket().getPort());
+                    try {
+                        outputStream.write(spriteMoveRightPacket.toByteArray());
+                        outputStream.flush();
+                    } catch (IOException exception) {
+                        throw new IllegalArgumentException(exception);
+                    }
                     break;
                 case SPACE:
                     shoot(player);
+                    SuperPacket spriteShotPacket = SuperPacket.create(1);
+                    spriteShotPacket.setValue(1, "shot socket: " + client.getSocket().getPort());
+                    try {
+                        outputStream.write(spriteShotPacket.toByteArray());
+                        outputStream.flush();
+                    } catch (IOException exception) {
+                        throw new IllegalArgumentException(exception);
+                    }
                     break;
             }
         });

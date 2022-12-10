@@ -138,6 +138,7 @@ public class SpaceInvadersApp extends Application {
     public void start(Stage stage) throws Exception {
 
         AwesomeClient client = AwesomeClient.initConnection("localhost", 4444);
+
         this.inputStream = client.getReader();
         this.outputStream = client.getWriter();
 
@@ -147,16 +148,41 @@ public class SpaceInvadersApp extends Application {
         Scene scene = new Scene(createContent());
         scene.setFill(new ImagePattern(new Image("space.jpg")));
 
+
         scene.setOnKeyPressed(e -> {
             switch (e.getCode()) {
                 case A:
                     player.moveLeft();
+                    SuperPacket spriteMoveLeftPacket = SuperPacket.create(1);
+                    spriteMoveLeftPacket.setValue(1, "move left socket: " + client.getSocket().getPort());
+                    try {
+                        outputStream.write(spriteMoveLeftPacket.toByteArray());
+                        outputStream.flush();
+                    } catch (IOException exception) {
+                        throw new IllegalArgumentException(exception);
+                    }
                     break;
                 case D:
                     player.moveRight();
+                    SuperPacket spriteMoveRightPacket = SuperPacket.create(1);
+                    spriteMoveRightPacket.setValue(1, "move right socket: " + client.getSocket().getPort());
+                    try {
+                        outputStream.write(spriteMoveRightPacket.toByteArray());
+                        outputStream.flush();
+                    } catch (IOException exception) {
+                        throw new IllegalArgumentException(exception);
+                    }
                     break;
                 case SPACE:
                     shoot(player);
+                    SuperPacket spriteShotPacket = SuperPacket.create(1);
+                    spriteShotPacket.setValue(1, "shot socket: " + client.getSocket().getPort());
+                    try {
+                        outputStream.write(spriteShotPacket.toByteArray());
+                        outputStream.flush();
+                    } catch (IOException exception) {
+                        throw new IllegalArgumentException(exception);
+                    }
                     break;
             }
         });

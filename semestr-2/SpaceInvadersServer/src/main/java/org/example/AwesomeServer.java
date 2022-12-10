@@ -7,8 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class AwesomeServer implements Runnable {
@@ -23,7 +22,7 @@ public class AwesomeServer implements Runnable {
 
     private ObjectMapper mapper = new ObjectMapper();
 
-    private List<Socket> sockets = new ArrayList<>();
+    private Map<Integer, Socket> socketMap = new HashMap<>();
     private AwesomeServer() {}
 
     public static AwesomeServer create(Integer port, ThreadPoolExecutor serverPool) throws IOException {
@@ -67,17 +66,16 @@ public class AwesomeServer implements Runnable {
             outputStream = clientSocket.getOutputStream();
             inputStream = clientSocket.getInputStream();
 
-            System.out.println("connected");
-
-            sockets.add(clientSocket);
-
-            System.out.println(Thread.getAllStackTraces());
+            System.out.println("connected" + " " + clientSocket.toString());
+            socketMap.put(clientSocket.getLocalPort(), clientSocket);
 
             SuperPacket handshake = SuperPacket.create(1);
             outputStream.write(handshake.toByteArray());
             outputStream.flush();
 
             while (true) {
+
+                System.out.println(Arrays.toString(readInput(inputStream)));
 
 //                if (bye.getType() == 4) {
 //                    System.out.println("bye");

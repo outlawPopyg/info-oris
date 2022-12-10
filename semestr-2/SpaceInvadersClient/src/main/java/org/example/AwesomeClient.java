@@ -61,4 +61,8 @@ public class AwesomeClient {
     public OutputStream getWriter() {
         return this.outputStream;
     }
+
+    public Socket getSocket() {
+        return socket;
+    }
 }
