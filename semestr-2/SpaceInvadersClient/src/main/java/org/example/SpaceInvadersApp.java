@@ -1,5 +1,6 @@
 package org.example;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Parent;
@@ -15,8 +16,11 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.Socket;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
@@ -33,6 +37,8 @@ public class SpaceInvadersApp extends Application {
     private int enemiesCount;
 
     private final Sprite player = new Sprite(300, 750, 40, 40, "player", Color.BLUE);
+    private String sessionId;
+    private ObjectMapper objectMapper;
 
     private Parent createContent() {
         root.setPrefSize(600, 800);
@@ -138,14 +144,8 @@ public class SpaceInvadersApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
 
-        AwesomeClient client = AwesomeClient.initConnection("localhost", 4444);
-        System.out.println("client: " + client.getSocket().toString());
-
-        this.inputStream = client.getReader();
-        this.outputStream = client.getWriter();
-
-        byte[] data = AwesomeClient.readInput(inputStream);
-        SuperPacket handshake = SuperPacket.parse(data);
+        sessionId = UUID.randomUUID().toString().substring(0, 8);
+        objectMapper = new ObjectMapper();
 
         Scene scene = new Scene(createContent());
         scene.setFill(new ImagePattern(new Image("space.jpg")));
@@ -153,45 +153,101 @@ public class SpaceInvadersApp extends Application {
         scene.setOnKeyPressed(e -> {
             switch (e.getCode()) {
                 case A:
-                    player.moveLeft();
-                    SuperPacket spriteMoveLeftPacket = SuperPacket.create(1);
-                    spriteMoveLeftPacket.setValue(1, "move left socket: " + client.getSocket().getPort());
                     try {
-                        outputStream.write(spriteMoveLeftPacket.toByteArray());
-                        outputStream.flush();
+                        player.moveLeft();
+
+                        AwesomeClient client = AwesomeClient.initConnection("localhost", 4444);
+                        Socket clientSocket = client.getSocket();
+
+                        SuperPacket spriteMoveLeftPacket = SuperPacket.create(5);
+                        Message message = new Message(sessionId, "move left");
+
+                        spriteMoveLeftPacket.setValue(1, objectMapper.writeValueAsString(message));
+
+                        clientSocket.getOutputStream().write(spriteMoveLeftPacket.toByteArray());
+                        clientSocket.getOutputStream().flush();
+
+                        Runnable runnable = () -> {
+                            try {
+                                System.out.println(Arrays.toString(AwesomeClient.readInput(clientSocket.getInputStream())));
+                            } catch (IOException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                        };
+
+                        Thread thread = new Thread(runnable);
+                        thread.start();
+
+
+                        break;
                     } catch (IOException exception) {
                         throw new IllegalArgumentException(exception);
                     }
-                    break;
                 case D:
-                    player.moveRight();
-                    SuperPacket spriteMoveRightPacket = SuperPacket.create(1);
-                    spriteMoveRightPacket.setValue(1, "move right socket: " + client.getSocket().getPort());
                     try {
-                        outputStream.write(spriteMoveRightPacket.toByteArray());
-                        outputStream.flush();
+                        player.moveRight();
+
+                        AwesomeClient client = AwesomeClient.initConnection("localhost", 4444);
+                        Socket clientSocket = client.getSocket();
+
+                        SuperPacket spriteMoveRightPacket = SuperPacket.create(6);
+                        Message message = new Message(sessionId, "move right");
+                        spriteMoveRightPacket.setValue(1, objectMapper.writeValueAsString(message));
+
+                        clientSocket.getOutputStream().write(spriteMoveRightPacket.toByteArray());
+                        clientSocket.getOutputStream().flush();
+
+                        Runnable runnable = () -> {
+                            try {
+                                System.out.println(Arrays.toString(AwesomeClient.readInput(clientSocket.getInputStream())));
+                            } catch (IOException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                        };
+
+                        Thread thread = new Thread(runnable);
+                        thread.start();
+
+                        break;
                     } catch (IOException exception) {
                         throw new IllegalArgumentException(exception);
                     }
-                    break;
                 case SPACE:
-                    shoot(player);
-                    SuperPacket spriteShotPacket = SuperPacket.create(1);
-                    spriteShotPacket.setValue(1, "shot socket: " + client.getSocket().getPort());
                     try {
-                        outputStream.write(spriteShotPacket.toByteArray());
-                        outputStream.flush();
+                        shoot(player);
+
+                        AwesomeClient client = AwesomeClient.initConnection("localhost", 4444);
+                        Socket clientSocket = client.getSocket();
+
+                        SuperPacket spriteShotPacket = SuperPacket.create(7);
+                        Message message = new Message(sessionId, "shoot");
+
+                        spriteShotPacket.setValue(1, objectMapper.writeValueAsString(message));
+
+                        clientSocket.getOutputStream().write(spriteShotPacket.toByteArray());
+                        clientSocket.getOutputStream().flush();
+
+                        Runnable runnable = () -> {
+                            try {
+                                System.out.println(Arrays.toString(AwesomeClient.readInput(clientSocket.getInputStream())));
+                            } catch (IOException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                        };
+
+                        Thread thread = new Thread(runnable);
+                        thread.start();
+
+                        break;
                     } catch (IOException exception) {
                         throw new IllegalArgumentException(exception);
                     }
-                    break;
             }
         });
 
-        if (handshake.getType() == 1) {
-            stage.setScene(scene);
-            stage.show();
-        }
+        stage.setScene(scene);
+        stage.show();
+
     }
 
     private static class Sprite extends Rectangle {

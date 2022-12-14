@@ -5,18 +5,23 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class Main {
-    public static void main(String[] args) throws IOException, InterruptedException {
-        ThreadPoolExecutor serverPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
-        AwesomeServer server = AwesomeServer.create(4444, serverPool);
+//    public static void main(String[] args) throws IOException, InterruptedException {
+//        ThreadPoolExecutor serverPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(10);
+//        AwesomeServer server = AwesomeServer.create(4444, serverPool);
+//
+//        while (true) {
+//            synchronized (serverPool) {
+//                serverPool.execute(server);
+//
+//                if (serverPool.getActiveCount() >= 10) {
+//                    serverPool.wait();
+//                }
+//            }
+//        }
+//    }
 
-        while (true) {
-            synchronized (serverPool) {
-                serverPool.execute(server);
-
-                if (serverPool.getActiveCount() >= 10) {
-                    serverPool.wait();
-                }
-            }
-        }
+    public static void main(String[] args) {
+        MultipleServer server = new MultipleServer();
+        server.start(4444);
     }
 }
