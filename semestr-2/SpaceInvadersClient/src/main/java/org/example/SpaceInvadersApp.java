@@ -152,6 +152,9 @@ public class SpaceInvadersApp extends Application {
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
 
+        ServerConnection serverConn = new ServerConnection(socket);
+
+        new Thread(serverConn).start();
 
         scene.setOnKeyPressed(e -> {
 
@@ -161,10 +164,12 @@ public class SpaceInvadersApp extends Application {
                 out.println("left");
             } else if (keyCode.equals(KeyCode.D)) {
                 player.moveRight();
-                out.println("player has moved right");
+                out.println("right");
             } else if (keyCode.equals(KeyCode.SPACE)) {
                 shoot(player);
-                out.println("player has shot");
+                out.println("shoot");
+            } else if (keyCode.equals(KeyCode.R)) {
+                out.println("broadcast");
             } else if (keyCode.equals(KeyCode.ESCAPE)) {
                 try {
                     socket.close();

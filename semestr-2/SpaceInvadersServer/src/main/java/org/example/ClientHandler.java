@@ -23,7 +23,6 @@ public class ClientHandler implements Runnable {
         try {
             while (true) {
                 String request = in.readLine();
-                System.out.println(request);
 
                 if (request.contains("left")) {
                     out.println("player has moved left");
@@ -31,11 +30,8 @@ public class ClientHandler implements Runnable {
                     out.println("player has moved right");
                 } else if (request.contains("shoot")) {
                     out.println("player has shot");
-                } else if (request.startsWith("say")) {
-                    int firstSpace = request.indexOf(" ");
-                    outToAll(request.substring(firstSpace+1));
-                } else {
-                    out.println("type 'tell me a name' to get a name");
+                } else if (request.contains("broadcast")) {
+                    outToAll(request);
                 }
             }
         } catch (IOException e) {
@@ -50,9 +46,9 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private void outToAll(String substring) {
+    private void outToAll(String request) {
         for (ClientHandler aClient : clients) {
-            aClient.out.println(substring);
+            aClient.out.println(request);
         }
     }
 }
