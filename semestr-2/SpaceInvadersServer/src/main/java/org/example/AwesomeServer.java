@@ -8,6 +8,8 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class AwesomeServer implements Runnable {
@@ -74,8 +76,15 @@ public class AwesomeServer implements Runnable {
             outputStream.flush();
 
             while (true) {
+                Runnable thread = () -> {
+                    try {
+                        System.out.println(Arrays.toString(readInput(inputStream)));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                };
 
-                System.out.println(Arrays.toString(readInput(inputStream)));
+                thread.run();
 
 //                if (bye.getType() == 4) {
 //                    System.out.println("bye");
