@@ -6,16 +6,16 @@ import javafx.application.Application;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
+import lombok.Cleanup;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -27,8 +27,10 @@ import java.util.stream.Collectors;
 
 public class SpaceInvadersApp extends Application {
 
-    private InputStream inputStream;
-    private OutputStream outputStream;
+    private BufferedReader in;
+    private PrintWriter out;
+    private final String HOST = "localhost";
+    private final int PORT = 4444;
 
     private final Pane root = new Pane();
 
@@ -37,8 +39,6 @@ public class SpaceInvadersApp extends Application {
     private int enemiesCount;
 
     private final Sprite player = new Sprite(300, 750, 40, 40, "player", Color.BLUE);
-    private String sessionId;
-    private ObjectMapper objectMapper;
 
     private Parent createContent() {
         root.setPrefSize(600, 800);
@@ -144,110 +144,40 @@ public class SpaceInvadersApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
 
-        sessionId = UUID.randomUUID().toString().substring(0, 8);
-        objectMapper = new ObjectMapper();
-
         Scene scene = new Scene(createContent());
         scene.setFill(new ImagePattern(new Image("space.jpg")));
 
+        Socket socket = new Socket(HOST, PORT);
+
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        out = new PrintWriter(socket.getOutputStream(), true);
+
+
         scene.setOnKeyPressed(e -> {
-            switch (e.getCode()) {
-                case A:
-                    try {
-                        player.moveLeft();
 
-                        AwesomeClient client = AwesomeClient.initConnection("localhost", 4444);
-                        Socket clientSocket = client.getSocket();
-
-                        SuperPacket spriteMoveLeftPacket = SuperPacket.create(5);
-                        Message message = new Message(sessionId, "move left");
-
-                        spriteMoveLeftPacket.setValue(1, objectMapper.writeValueAsString(message));
-
-                        clientSocket.getOutputStream().write(spriteMoveLeftPacket.toByteArray());
-                        clientSocket.getOutputStream().flush();
-
-                        Runnable runnable = () -> {
-                            try {
-                                System.out.println(Arrays.toString(AwesomeClient.readInput(clientSocket.getInputStream())));
-                            } catch (IOException ex) {
-                                throw new RuntimeException(ex);
-                            }
-                        };
-
-                        Thread thread = new Thread(runnable);
-                        thread.start();
-
-
-                        break;
-                    } catch (IOException exception) {
-                        throw new IllegalArgumentException(exception);
-                    }
-                case D:
-                    try {
-                        player.moveRight();
-
-                        AwesomeClient client = AwesomeClient.initConnection("localhost", 4444);
-                        Socket clientSocket = client.getSocket();
-
-                        SuperPacket spriteMoveRightPacket = SuperPacket.create(6);
-                        Message message = new Message(sessionId, "move right");
-                        spriteMoveRightPacket.setValue(1, objectMapper.writeValueAsString(message));
-
-                        clientSocket.getOutputStream().write(spriteMoveRightPacket.toByteArray());
-                        clientSocket.getOutputStream().flush();
-
-                        Runnable runnable = () -> {
-                            try {
-                                System.out.println(Arrays.toString(AwesomeClient.readInput(clientSocket.getInputStream())));
-                            } catch (IOException ex) {
-                                throw new RuntimeException(ex);
-                            }
-                        };
-
-                        Thread thread = new Thread(runnable);
-                        thread.start();
-
-                        break;
-                    } catch (IOException exception) {
-                        throw new IllegalArgumentException(exception);
-                    }
-                case SPACE:
-                    try {
-                        shoot(player);
-
-                        AwesomeClient client = AwesomeClient.initConnection("localhost", 4444);
-                        Socket clientSocket = client.getSocket();
-
-                        SuperPacket spriteShotPacket = SuperPacket.create(7);
-                        Message message = new Message(sessionId, "shoot");
-
-                        spriteShotPacket.setValue(1, objectMapper.writeValueAsString(message));
-
-                        clientSocket.getOutputStream().write(spriteShotPacket.toByteArray());
-                        clientSocket.getOutputStream().flush();
-
-                        Runnable runnable = () -> {
-                            try {
-                                System.out.println(Arrays.toString(AwesomeClient.readInput(clientSocket.getInputStream())));
-                            } catch (IOException ex) {
-                                throw new RuntimeException(ex);
-                            }
-                        };
-
-                        Thread thread = new Thread(runnable);
-                        thread.start();
-
-                        break;
-                    } catch (IOException exception) {
-                        throw new IllegalArgumentException(exception);
-                    }
+            KeyCode keyCode = e.getCode();
+            if (keyCode.equals(KeyCode.A)) {
+                player.moveLeft();
+                out.println("left");
+            } else if (keyCode.equals(KeyCode.D)) {
+                player.moveRight();
+                out.println("player has moved right");
+            } else if (keyCode.equals(KeyCode.SPACE)) {
+                shoot(player);
+                out.println("player has shot");
+            } else if (keyCode.equals(KeyCode.ESCAPE)) {
+                try {
+                    socket.close();
+                    System.exit(0);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
+
         });
 
         stage.setScene(scene);
         stage.show();
-
     }
 
     private static class Sprite extends Rectangle {
