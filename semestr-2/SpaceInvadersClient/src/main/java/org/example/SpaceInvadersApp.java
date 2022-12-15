@@ -152,9 +152,25 @@ public class SpaceInvadersApp extends Application {
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         out = new PrintWriter(socket.getOutputStream(), true);
 
-        ServerConnection serverConn = new ServerConnection(socket);
+        new Thread(() -> {
+            try {
+                while (true) {
+                    String serverResponse = in.readLine();
 
-        new Thread(serverConn).start();
+                    if (serverResponse == null) break;
+
+                    System.out.println("Server says: " + serverResponse);
+                }
+            } catch (IOException e) {
+                throw new IllegalArgumentException(e);
+            } finally {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }).start();
 
         scene.setOnKeyPressed(e -> {
 
