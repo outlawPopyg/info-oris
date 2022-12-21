@@ -102,6 +102,9 @@ public class SpaceInvadersApp extends Application {
                     if (s.getBoundsInParent().intersects(player.getBoundsInParent())) {
                         player.dead = true;
                         s.dead = true;
+                    } else if (s.getBoundsInParent().intersects(coPlayer.getBoundsInParent())) {
+                        coPlayer.dead = true;
+                        s.dead = true;
                     }
                     break;
 
@@ -123,6 +126,7 @@ public class SpaceInvadersApp extends Application {
 
                     if (t > 2) {
                         if (Math.random() < 0.3) {
+                            out.println("enemy bullet");
 //                            shoot(s);
                         }
                     }
@@ -176,12 +180,7 @@ public class SpaceInvadersApp extends Application {
                             } else if (serverResponse.contains("right")) {
                                 coPlayer.moveRight();
                             } else if (serverResponse.contains("shoot")) {
-
-                                Sprite s = new Sprite((int) coPlayer.getTranslateX() + 20, (int) coPlayer.getTranslateY(), 12, 20, coPlayer.type + "bullet", Color.BLACK);
-                                s.setFill(new ImagePattern(new Image("fireball.png")));
-
-                                root.getChildren().add(s);
-
+                                shoot(coPlayer);
                             }
                         }
                     });
