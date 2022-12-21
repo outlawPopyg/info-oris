@@ -24,15 +24,8 @@ public class ClientHandler implements Runnable {
             while (true) {
                 String request = in.readLine();
 
-                if (request.contains("left")) {
-                    out.println("player has moved left");
-                } else if (request.contains("right")) {
-                    out.println("player has moved right");
-                } else if (request.contains("shoot")) {
-                    out.println("player has shot");
-                } else if (request.contains("broadcast")) {
-                    outToAll(request);
-                }
+                outToAll(request);
+
             }
         } catch (IOException e) {
             throw new IllegalArgumentException(e);

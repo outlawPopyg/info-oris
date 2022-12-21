@@ -3,6 +3,7 @@ package org.example;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -39,14 +40,20 @@ public class SpaceInvadersApp extends Application {
     private int enemiesCount;
 
     private final Sprite player = new Sprite(300, 750, 40, 40, "player", Color.BLUE);
+    private final Sprite coPlayer = new Sprite(350, 750, 40, 40, "player", Color.RED);
 
+    private String sessionId;
     private Parent createContent() {
         root.setPrefSize(600, 800);
 
-        Image image = new Image("gamer.png");
-        player.setFill(new ImagePattern(image));
+        Image playerImage = new Image("gamer.png");
+        player.setFill(new ImagePattern(playerImage));
+
+        Image coPlayerImage = new Image("coPlayer.png");
+        coPlayer.setFill(new ImagePattern(coPlayerImage));
 
         root.getChildren().add(player);
+        root.getChildren().add(coPlayer);
 
         AnimationTimer timer = new AnimationTimer() {
             @Override
@@ -116,7 +123,7 @@ public class SpaceInvadersApp extends Application {
 
                     if (t > 2) {
                         if (Math.random() < 0.3) {
-                            shoot(s);
+//                            shoot(s);
                         }
                     }
 
@@ -146,6 +153,8 @@ public class SpaceInvadersApp extends Application {
 
         Scene scene = new Scene(createContent());
         scene.setFill(new ImagePattern(new Image("space.jpg")));
+        sessionId = UUID.randomUUID().toString().substring(0,7);
+        System.out.println("[Client#" + sessionId + "]: created");
 
         Socket socket = new Socket(HOST, PORT);
 
@@ -159,8 +168,26 @@ public class SpaceInvadersApp extends Application {
 
                     if (serverResponse == null) break;
 
-                    System.out.println("Server says: " + serverResponse);
+                    Platform.runLater(() -> {
+                        if (!serverResponse.contains(sessionId)) {
+                            System.out.println("Server says: " + serverResponse);
+                            if (serverResponse.contains("left")) {
+                                coPlayer.moveLeft();
+                            } else if (serverResponse.contains("right")) {
+                                coPlayer.moveRight();
+                            } else if (serverResponse.contains("shoot")) {
+
+                                Sprite s = new Sprite((int) coPlayer.getTranslateX() + 20, (int) coPlayer.getTranslateY(), 12, 20, coPlayer.type + "bullet", Color.BLACK);
+                                s.setFill(new ImagePattern(new Image("fireball.png")));
+
+                                root.getChildren().add(s);
+
+                            }
+                        }
+                    });
+
                 }
+
             } catch (IOException e) {
                 throw new IllegalArgumentException(e);
             } finally {
@@ -177,15 +204,13 @@ public class SpaceInvadersApp extends Application {
             KeyCode keyCode = e.getCode();
             if (keyCode.equals(KeyCode.A)) {
                 player.moveLeft();
-                out.println("left");
+                out.println(sessionId + " left");
             } else if (keyCode.equals(KeyCode.D)) {
                 player.moveRight();
-                out.println("right");
+                out.println(sessionId + " right");
             } else if (keyCode.equals(KeyCode.SPACE)) {
                 shoot(player);
-                out.println("shoot");
-            } else if (keyCode.equals(KeyCode.R)) {
-                out.println("broadcast");
+                out.println(sessionId + " shoot");
             } else if (keyCode.equals(KeyCode.ESCAPE)) {
                 try {
                     socket.close();
