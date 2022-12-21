@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class AwesomeClient {
 
@@ -64,5 +65,10 @@ public class AwesomeClient {
 
     public Socket getSocket() {
         return socket;
+    }
+
+    public static void main(String[] args) {
+        AtomicInteger atomicInteger = new AtomicInteger(0);
+        System.out.println(atomicInteger.getAndIncrement());
     }
 }

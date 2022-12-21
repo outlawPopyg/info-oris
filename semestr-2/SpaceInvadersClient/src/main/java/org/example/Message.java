@@ -9,5 +9,4 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Message {
     private String sessionId;
-    private String messageText;
 }

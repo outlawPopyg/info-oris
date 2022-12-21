@@ -23,13 +23,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 
 public class SpaceInvadersApp extends Application {
 
-    private BufferedReader in;
-    private PrintWriter out;
+    private InputStream in;
+    private OutputStream out;
     private final String HOST = "localhost";
     private final int PORT = 4444;
 
@@ -40,7 +41,7 @@ public class SpaceInvadersApp extends Application {
     private int enemiesCount;
 
     private final Sprite player = new Sprite(300, 750, 40, 40, "player", Color.BLUE);
-    private final Sprite coPlayer = new Sprite(350, 750, 40, 40, "player", Color.RED);
+    private final Sprite coPlayer = new Sprite(300, 750, 40, 40, "player", Color.RED);
 
     private String sessionId;
     private Parent createContent() {
@@ -93,6 +94,7 @@ public class SpaceInvadersApp extends Application {
 
         t += 0.016;
 
+        AtomicInteger i = new AtomicInteger(0);
         sprites().forEach(s -> {
             switch (s.type) {
 
@@ -102,7 +104,9 @@ public class SpaceInvadersApp extends Application {
                     if (s.getBoundsInParent().intersects(player.getBoundsInParent())) {
                         player.dead = true;
                         s.dead = true;
-                    } else if (s.getBoundsInParent().intersects(coPlayer.getBoundsInParent())) {
+                    }
+
+                    if (s.getBoundsInParent().intersects(coPlayer.getBoundsInParent())) {
                         coPlayer.dead = true;
                         s.dead = true;
                     }
@@ -123,16 +127,24 @@ public class SpaceInvadersApp extends Application {
                     break;
 
                 case "enemy":
-
                     if (t > 2) {
-                        if (Math.random() < 0.3) {
-                            out.println("enemy bullet");
-//                            shoot(s);
+                        if (Math.random() < 0.2) {
+                            try {
+                                SuperPacket enemyBulletPacket = SuperPacket.create(8);
+                                enemyBulletPacket.setValue(1, sessionId);
+                                enemyBulletPacket.setValue(2, i.get());
+
+                                out.write(enemyBulletPacket.toByteArray());
+                                out.flush();
+                            } catch (IOException e) {
+                                throw new IllegalArgumentException(e);
+                            }
                         }
                     }
 
                     break;
             }
+            i.incrementAndGet();
         });
 
         root.getChildren().removeIf(n -> {
@@ -162,24 +174,31 @@ public class SpaceInvadersApp extends Application {
 
         Socket socket = new Socket(HOST, PORT);
 
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        out = new PrintWriter(socket.getOutputStream(), true);
+        in = socket.getInputStream();
+        out = socket.getOutputStream();
 
         new Thread(() -> {
             try {
                 while (true) {
-                    String serverResponse = in.readLine();
+                    byte[] serverResponse = readInput(in);
 
                     if (serverResponse == null) break;
 
                     Platform.runLater(() -> {
-                        if (!serverResponse.contains(sessionId)) {
-                            System.out.println("Server says: " + serverResponse);
-                            if (serverResponse.contains("left")) {
+                        SuperPacket packet = SuperPacket.parse(serverResponse);
+
+                        if (packet.getType() == 8) {
+                            int i = packet.getValue(2, Integer.class);
+                            shoot(sprites().get(i));
+                        }
+
+                        if (!packet.getValue(1, String.class).contains(sessionId)) {
+
+                            if (packet.getType() == 5) {
                                 coPlayer.moveLeft();
-                            } else if (serverResponse.contains("right")) {
+                            } else if (packet.getType() == 6) {
                                 coPlayer.moveRight();
-                            } else if (serverResponse.contains("shoot")) {
+                            } else if (packet.getType() == 7) {
                                 shoot(coPlayer);
                             }
                         }
@@ -199,26 +218,43 @@ public class SpaceInvadersApp extends Application {
         }).start();
 
         scene.setOnKeyPressed(e -> {
+            try {
+                KeyCode keyCode = e.getCode();
+                if (keyCode.equals(KeyCode.A)) {
+                    player.moveLeft();
 
-            KeyCode keyCode = e.getCode();
-            if (keyCode.equals(KeyCode.A)) {
-                player.moveLeft();
-                out.println(sessionId + " left");
-            } else if (keyCode.equals(KeyCode.D)) {
-                player.moveRight();
-                out.println(sessionId + " right");
-            } else if (keyCode.equals(KeyCode.SPACE)) {
-                shoot(player);
-                out.println(sessionId + " shoot");
-            } else if (keyCode.equals(KeyCode.ESCAPE)) {
-                try {
-                    socket.close();
-                    System.exit(0);
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
+                    SuperPacket moveLeftPacket = SuperPacket.create(5);
+                    moveLeftPacket.setValue(1, sessionId);
+
+                    out.write(moveLeftPacket.toByteArray());
+                    out.flush();
+                } else if (keyCode.equals(KeyCode.D)) {
+                    player.moveRight();
+
+                    SuperPacket moveRightPacket = SuperPacket.create(6);
+                    moveRightPacket.setValue(1, sessionId);
+
+                    out.write(moveRightPacket.toByteArray());
+                    out.flush();
+                } else if (keyCode.equals(KeyCode.SPACE)) {
+                    shoot(player);
+
+                    SuperPacket shootPacket = SuperPacket.create(7);
+                    shootPacket.setValue(1, sessionId);
+
+                    out.write(shootPacket.toByteArray());
+                    out.flush();
+                } else if (keyCode.equals(KeyCode.ESCAPE)) {
+                    try {
+                        socket.close();
+                        System.exit(0);
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
+            } catch (IOException exception) {
+                throw new IllegalArgumentException(exception);
             }
-
         });
 
         stage.setScene(scene);
@@ -254,7 +290,34 @@ public class SpaceInvadersApp extends Application {
         }
     }
 
+    private byte[] extendArray(byte[] oldArray) {
+        int oldSize = oldArray.length;
+        byte[] newArray = new byte[oldSize * 2];
+        System.arraycopy(oldArray, 0, newArray, 0, oldSize);
+        return newArray;
+    }
+
+    private byte[] readInput(InputStream stream) throws IOException {
+        int b;
+        byte[] buffer = new byte[10];
+        int counter = 0;
+        while ((b = stream.read()) > -1) {
+            buffer[counter++] = (byte) b;
+            if (counter >= buffer.length) {
+                buffer = extendArray(buffer);
+            }
+            if (counter > 2 && SuperPacket.compareEndOfPacket(buffer, counter - 1)) {
+                break;
+            }
+        }
+        byte[] data = new byte[counter];
+        System.arraycopy(buffer, 0, data, 0, counter);
+        return data;
+    }
+
     public static void main(String[] args) throws IOException {
         launch(args);
     }
+
+
 }

@@ -6,42 +6,70 @@ import java.util.List;
 
 public class ClientHandler implements Runnable {
     private final Socket client;
-    private final BufferedReader in;
-    private final PrintWriter out;
+    private final InputStream in;
+    private final OutputStream out;
     private final List<ClientHandler> clients;
 
     public ClientHandler(Socket clientSocket, List<ClientHandler> clients) throws IOException {
         this.client = clientSocket;
         this.clients = clients;
 
-        this.in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-        this.out = new PrintWriter(clientSocket.getOutputStream(), true);
+        this.in = clientSocket.getInputStream();
+        this.out = clientSocket.getOutputStream();
     }
 
     @Override
     public void run() {
         try {
             while (true) {
-                String request = in.readLine();
+                byte[] request = readInput(in);
 
                 outToAll(request);
-
             }
         } catch (IOException e) {
             throw new IllegalArgumentException(e);
         } finally {
             try {
                 in.close();
+                out.close();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            out.close();
+        }
+    }
+    private void outToAll(byte[] request) {
+        for (ClientHandler aClient : clients) {
+            try {
+                aClient.out.write(request);
+                aClient.out.flush();
+            } catch (IOException e) {
+                throw new IllegalArgumentException(e);
+            }
         }
     }
 
-    private void outToAll(String request) {
-        for (ClientHandler aClient : clients) {
-            aClient.out.println(request);
+    private byte[] extendArray(byte[] oldArray) {
+        int oldSize = oldArray.length;
+        byte[] newArray = new byte[oldSize * 2];
+        System.arraycopy(oldArray, 0, newArray, 0, oldSize);
+        return newArray;
+    }
+
+    private byte[] readInput(InputStream stream) throws IOException {
+        int b;
+        byte[] buffer = new byte[10];
+        int counter = 0;
+        while ((b = stream.read()) > -1) {
+            buffer[counter++] = (byte) b;
+            if (counter >= buffer.length) {
+                buffer = extendArray(buffer);
+            }
+            if (counter > 2 && SuperPacket.compareEndOfPacket(buffer, counter - 1)) {
+                break;
+            }
         }
+        byte[] data = new byte[counter];
+        System.arraycopy(buffer, 0, data, 0, counter);
+        return data;
     }
 }
