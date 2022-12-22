@@ -1,6 +1,5 @@
 package org.example;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -11,18 +10,13 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-import lombok.Cleanup;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -131,7 +125,7 @@ public class SpaceInvadersApp extends Application {
 
                     case "enemy":
                         if (t > 2) {
-                            if (Math.random() < 0.2) {
+                            if (Math.random() < 0.3) {
                                 try {
                                     SuperPacket enemyBulletPacket = SuperPacket.create(8);
                                     enemyBulletPacket.setValue(1, sessionId);

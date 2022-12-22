@@ -21,6 +21,10 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
+            if (clients.size() == 2) {
+                SuperPacket startPacket = SuperPacket.create(1);
+                outToAll(startPacket.toByteArray());
+            }
             while (true) {
                 byte[] request = readInput(in);
 
