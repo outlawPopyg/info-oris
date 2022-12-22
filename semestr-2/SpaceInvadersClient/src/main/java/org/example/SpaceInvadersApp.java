@@ -43,6 +43,7 @@ public class SpaceInvadersApp extends Application {
     private final Sprite player = new Sprite(300, 750, 40, 40, "player", Color.BLUE);
     private final Sprite coPlayer = new Sprite(300, 750, 40, 40, "player", Color.RED);
 
+    private boolean isPlay = false;
     private String sessionId;
     private Parent createContent() {
         root.setPrefSize(600, 800);
@@ -88,72 +89,75 @@ public class SpaceInvadersApp extends Application {
 
     private void update() {
 
-        if (enemiesCount == 0) {
-            nextLevel();
-        }
+        if (isPlay) {
 
-        t += 0.016;
+            if (enemiesCount == 0) {
+                nextLevel();
+            }
 
-        AtomicInteger i = new AtomicInteger(0);
-        sprites().forEach(s -> {
-            switch (s.type) {
+            t += 0.016;
 
-                case "enemybullet":
-                    s.moveDown();
+            AtomicInteger i = new AtomicInteger(0);
+            sprites().forEach(s -> {
+                switch (s.type) {
 
-                    if (s.getBoundsInParent().intersects(player.getBoundsInParent())) {
-                        player.dead = true;
-                        s.dead = true;
-                    }
+                    case "enemybullet":
+                        s.moveDown();
 
-                    if (s.getBoundsInParent().intersects(coPlayer.getBoundsInParent())) {
-                        coPlayer.dead = true;
-                        s.dead = true;
-                    }
-                    break;
-
-                case "playerbullet":
-                    s.moveUp();
-
-                    sprites().stream().filter(e -> e.type.equals("enemy")).forEach(enemy -> {
-                        if (s.getBoundsInParent().intersects(enemy.getBoundsInParent())) {
-                            enemy.dead = true;
+                        if (s.getBoundsInParent().intersects(player.getBoundsInParent())) {
+                            player.dead = true;
                             s.dead = true;
-
-                            enemiesCount--;
                         }
-                    });
 
-                    break;
+                        if (s.getBoundsInParent().intersects(coPlayer.getBoundsInParent())) {
+                            coPlayer.dead = true;
+                            s.dead = true;
+                        }
+                        break;
 
-                case "enemy":
-                    if (t > 2) {
-                        if (Math.random() < 0.2) {
-                            try {
-                                SuperPacket enemyBulletPacket = SuperPacket.create(8);
-                                enemyBulletPacket.setValue(1, sessionId);
-                                enemyBulletPacket.setValue(2, i.get());
+                    case "playerbullet":
+                        s.moveUp();
 
-                                out.write(enemyBulletPacket.toByteArray());
-                                out.flush();
-                            } catch (IOException e) {
-                                throw new IllegalArgumentException(e);
+                        sprites().stream().filter(e -> e.type.equals("enemy")).forEach(enemy -> {
+                            if (s.getBoundsInParent().intersects(enemy.getBoundsInParent())) {
+                                enemy.dead = true;
+                                s.dead = true;
+
+                                enemiesCount--;
+                            }
+                        });
+
+                        break;
+
+                    case "enemy":
+                        if (t > 2) {
+                            if (Math.random() < 0.2) {
+                                try {
+                                    SuperPacket enemyBulletPacket = SuperPacket.create(8);
+                                    enemyBulletPacket.setValue(1, sessionId);
+                                    enemyBulletPacket.setValue(2, i.get());
+
+                                    out.write(enemyBulletPacket.toByteArray());
+                                    out.flush();
+                                } catch (IOException e) {
+                                    throw new IllegalArgumentException(e);
+                                }
                             }
                         }
-                    }
 
-                    break;
+                        break;
+                }
+                i.incrementAndGet();
+            });
+
+            root.getChildren().removeIf(n -> {
+                Sprite s = (Sprite) n;
+                return s.dead;
+            });
+
+            if (t > 2) {
+                t = 0;
             }
-            i.incrementAndGet();
-        });
-
-        root.getChildren().removeIf(n -> {
-            Sprite s = (Sprite) n;
-            return s.dead;
-        });
-
-        if (t > 2) {
-            t = 0;
         }
     }
 
@@ -187,12 +191,16 @@ public class SpaceInvadersApp extends Application {
                     Platform.runLater(() -> {
                         SuperPacket packet = SuperPacket.parse(serverResponse);
 
+                        if (packet.getType() == 1) {
+                            isPlay = true;
+                        }
+
                         if (packet.getType() == 8) {
                             int i = packet.getValue(2, Integer.class);
                             shoot(sprites().get(i));
                         }
 
-                        if (!packet.getValue(1, String.class).contains(sessionId)) {
+                        if (packet.getType() != 1 && packet.getType() != 8 && !packet.getValue(1, String.class).contains(sessionId)) {
 
                             if (packet.getType() == 5) {
                                 coPlayer.moveLeft();
