@@ -12,7 +12,7 @@ public class Server {
     private static final int PORT = 4444;
 
     private static final List<ClientHandler> clients = new LinkedList<>();
-    private static final ExecutorService pool = Executors.newFixedThreadPool(4);
+    private static final ExecutorService pool = Executors.newFixedThreadPool(2);
 
     public static void main(String[] args)  {
         try (ServerSocket listener = new ServerSocket(PORT)) {
