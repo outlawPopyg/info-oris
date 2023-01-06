@@ -1,5 +1,4 @@
 ## Concurrency in JavaFX
-___
 Sometimes you absolutely need to perform some long-running task in a JavaFX application.
 You don't want to leave the GUI unresponsive while the task is running, so you want to run
 the ask in its own thread. However, you would like the running task to update the GUI - either
