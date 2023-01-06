@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import java.net.URL?>
+
+<ScrollPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.example.controller.HelloFXmlController"
+            prefHeight="400.0" prefWidth="600.0" fitToWidth="true" fitToHeight="true">
+    <stylesheets>
+        <URL value="@/css/HelloFX.css"/>
+    </stylesheets>
+
+    <VBox alignment="CENTER" id="base">
+        <Text fx:id="helloText" id="welcome-text"/>
+        <Button text="Press me!" onAction="#buttonPressed"/>
+        <Label fx:id="buttonLabel" visible="false"/>
+    </VBox>
+</ScrollPane>
