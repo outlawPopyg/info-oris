@@ -2,7 +2,6 @@ package sockets;
 
 import java.io.IOException;
 import java.net.Socket;
-
 public class SecondClient {
     private static final int port = 4444;
     private static final String host = "localhost";

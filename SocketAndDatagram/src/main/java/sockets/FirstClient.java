@@ -2,6 +2,8 @@ package sockets;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 
 public class FirstClient {
     private static final int port = 4444;
