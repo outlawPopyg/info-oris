@@ -170,7 +170,8 @@ public class SecondClient {
 	}
 ```
 
-
+### InetAddress
+Class represents an IP address. The java.net.InetAddress class provides methods to get the IP of any host name for example www.javatpoint.com, www.google.com, www.facebook.com, etc.
 
 
 
