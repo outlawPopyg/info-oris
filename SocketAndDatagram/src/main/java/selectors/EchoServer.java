@@ -22,6 +22,7 @@ public class EchoServer {
         serverSocket.register(selector, SelectionKey.OP_ACCEPT);
         ByteBuffer buffer = ByteBuffer.allocate(256);
 
+
         while (true) {
             int count = selector.select();
             System.out.println("[SERVER] Selected: " + count);

@@ -1,4 +1,0 @@
-servlets\Home.class
-models\User.class
-orm\annotations\TableName.class
-orm\annotations\ColumnName.class
